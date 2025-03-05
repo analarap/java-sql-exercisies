@@ -1,0 +1,25 @@
+-- 4. Consulta com todos os dados da primeira e da ultima tarefa executada, por tipo e por dia.
+
+WITH CTE_TAREFAS AS (
+    SELECT 
+        t.TIPO,
+        DATE(h.DATA_HORA) AS DATA,
+        h.ID_TAREFA,
+        h.DATA_HORA,
+        ROW_NUMBER() OVER (PARTITION BY t.TIPO, DATE(h.DATA_HORA) ORDER BY h.DATA_HORA ASC) AS PRIMEIRA,
+        ROW_NUMBER() OVER (PARTITION BY t.TIPO, DATE(h.DATA_HORA) ORDER BY h.DATA_HORA DESC) AS ULTIMA
+    FROM HISTORICO h
+    JOIN TAREFA t ON h.ID_TAREFA = t.ID_TAREFA
+)
+SELECT 
+    DATA, 
+    TIPO,
+    ID_TAREFA,
+    DATA_HORA,
+    CASE 
+        WHEN PRIMEIRA = 1 THEN 'PRIMEIRA'
+        WHEN ULTIMA = 1 THEN 'ÚLTIMA'
+    END AS POSICAO
+FROM CTE_TAREFAS
+WHERE PRIMEIRA = 1 OR ULTIMA = 1
+ORDER BY DATA, TIPO, POSICAO;
